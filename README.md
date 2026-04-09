@@ -73,10 +73,12 @@ Below is a set of diagrams outlining both how Yamcs in its current state works, 
 
 Install the YAMCS uslp-tc branch:
 
-`$` `git clone https://github.com/yamcs/yamcs`
-`$` `cd yamcs`
-`$` `git switch uslp-tc`
-`$` `mvn clean install`
+```bash
+$ git clone https://github.com/yamcs/yamcs
+$ cd yamcs
+$ git switch uslp-tc
+$ mvn clean install
+```
 
 Install and run the uniclogs implementation of YAMCS with using locally installed uslp-tc YAMCS.
 
