@@ -102,12 +102,21 @@ How to:
 # Installation and setup for USLP-tc fix
 
 
+
 ## Install the YAMCS uslp-tc branch:
 
 ```bash
 $ git clone https://github.com/yamcs/yamcs
 $ cd yamcs
 $ git switch uslp-tc
+```
+
+### If yamcs uslp-tc's branch is still on commit 237ca01:
+open file `yamcs-core/src/main/java/org/yamcs/tctm/ccsds`
+modify line `25` and replace `0` with `1`
+modify line `148` by removing ` - uslpParams.insertZoneLength`
+
+```
 $ mvn clean install
 ```
 
