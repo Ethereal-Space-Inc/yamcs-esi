@@ -109,28 +109,15 @@ How to:
 $ git clone https://github.com/yamcs/yamcs
 $ cd yamcs
 $ git switch uslp-tc
-```
 
-### If yamcs uslp-tc's branch is still on commit 237ca01:
-open file `yamcs-core/src/main/java/org/yamcs/tctm/ccsds`
-modify line `25` and replace `0` with `1`
-modify line `148` by removing ` - uslpParams.insertZoneLength`
 
-```
+$ cd yamcs-web/src/main/webapp
+$ npm install
+$ npm run build
+$ cd -
+
 $ mvn clean install
 ```
-
-## Modify the c3 main branch to fix two issues
-
-Modify line `49` in `oresat_c3/protocols/edl_packet.py` to the following:
-
-```
-    return binascii.crc_hqx(data, 0xffff).to_bytes(2, "big")
-```
-
-Modify lines `405`, `426`, `472`, and `493` in `oresat_c3/protocols/edl_command.py` by appending `'=' + ` to the command.req_fmt and self.command.req_fmt arguments of unpack and pack respectively. The result should be like the following:
-
-`405:` `            raw += struct.pack('=' + self.command.req_fmt, *self.args)`
 
 ## Install and run the uniclogs implementation of YAMCS with using locally installed uslp-tc YAMCS.
 
