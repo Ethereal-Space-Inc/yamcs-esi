@@ -1,0 +1,6 @@
+[
+	{
+		"type": "BASH_SCRIPT",
+		"items": ["test.sh"]
+	}
+]
