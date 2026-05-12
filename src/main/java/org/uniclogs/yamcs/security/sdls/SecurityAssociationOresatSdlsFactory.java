@@ -10,12 +10,14 @@ import org.yamcs.Spec.OptionType;
 import org.yamcs.YConfiguration;
 import org.yamcs.security.sdls.SdlsSecurityAssociation;
 import org.yamcs.security.sdls.SdlsSecurityAssociationFactory;
+import org.yamcs.security.sdls.SecurityAssociationAes256Gcm128Factory;
+
 
 
 /**
  * Creates instances of {@link OresatSdlsSecurityAssociation}
  */
-public class SecurityAssociationOresatSdlsFactory implements SdlsSecurityAssociationFactory {
+public class SecurityAssociationOresatSdlsFactory extends SecurityAssociationAes256Gcm128Factory implements SdlsSecurityAssociationFactory {
 
     public SecurityAssociationOresatSdlsFactory() {
     }

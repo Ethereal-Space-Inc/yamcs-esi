@@ -194,10 +194,10 @@ public class OresatSdlsSecurityAssociation implements SdlsSecurityAssociation {
         // and increment the sequence number
         seqNum.increment();
 
-        byte[] ad = computeAD(buffer, frameStart, secTrailerEnd - 31, authMask);
+        byte[] ad = computeAD(buffer, frameStart, secTrailerEnd - 32, authMask);
 		byte[] hmac = genHmac(ad);
 
-		System.arraycopy(hmac, 0, buffer, secTrailerEnd - 31, MAC_LEN_BITS / 8);
+		System.arraycopy(hmac, 0, buffer, secTrailerEnd - 32, MAC_LEN_BITS / 8);
     }
 
 
@@ -237,11 +237,11 @@ public class OresatSdlsSecurityAssociation implements SdlsSecurityAssociation {
         byte[] receivedSeqNumBytes = new byte[SEQ_NUM_LEN_BYTES];
         System.arraycopy(buffer, secHeaderStart + 2, receivedSeqNumBytes, 0, SEQ_NUM_LEN_BYTES);
 
-        byte[] ad = computeAD(buffer, frameStart, secTrailerEnd - 31, authMask);
+        byte[] ad = computeAD(buffer, frameStart, secTrailerEnd - 32, authMask);
 
 		byte[] expectedHmac = genHmac(ad);
 		byte[] actHmac = new byte[MAC_LEN_BITS / 8];
-        System.arraycopy(buffer, secTrailerEnd - 31, actHmac, 0, MAC_LEN_BITS / 8);
+        System.arraycopy(buffer, secTrailerEnd - 32, actHmac, 0, MAC_LEN_BITS / 8);
 		if (!compByteArray(expectedHmac, actHmac)) {
 			return VerificationStatusCode.MacVerificationFailure;
 		}
