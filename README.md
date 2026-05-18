@@ -103,12 +103,13 @@ How to:
 
 
 
-## Install the YAMCS uslp-tc branch:
+## Install the YAMCS hotfix-uslp-sdls-uplink branch:
+
+The main yamcs repository currently has a bug with the SDLS header location. This branch of a fork by one of the YAMCS developers contains the fix.
 
 ```bash
-$ git clone https://github.com/yamcs/yamcs
+$ git clone -b hotfix-uslp-sdls-uplink https://github.com/thezeroalpha/yamcs/
 $ cd yamcs
-$ git switch uslp-tc
 
 
 $ cd yamcs-web/src/main/webapp

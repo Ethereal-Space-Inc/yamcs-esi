@@ -15,7 +15,7 @@
     Update this to the latest Yamcs release.
     Check https://mvnrepository.com/artifact/org.yamcs/yamcs-core
     -->
-    <yamcsVersion>5.12.6-SNAPSHOT</yamcsVersion>
+    <yamcsVersion>5.12.7-SNAPSHOT</yamcsVersion>
   </properties>
   <dependencies>
     <!-- Yamcs core framework -->
@@ -28,7 +28,7 @@
     <dependency>
       <groupId>org.yamcs</groupId>
       <artifactId>yamcs-web</artifactId>
-      <version>${yamcsVersion}</version>
+      <version>5.12.6-SNAPSHOT</version>
     </dependency>
     <!-- HMAC Generation Utils -->
     <dependency>

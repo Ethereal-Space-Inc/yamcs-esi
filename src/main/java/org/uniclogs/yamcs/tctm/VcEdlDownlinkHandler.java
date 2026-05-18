@@ -84,14 +84,6 @@ public class VcEdlDownlinkHandler extends AbstractTmDataLink implements VcDownli
         pwt.setFrameSeqCount(frameSeqCount);
 		pwt.setGenerationTime(TimeEncoding.getWallclockTime());
 
-
-		// get and check the HMAC. TODO: should this be done in another class?
-		byte[] hmac = new byte[32];
-		System.arraycopy(p, p.length-32, hmac, 0, 32);
-		log.info("Hmac is: {}", StringConverter.arrayToHexString(hmac, true));
-
-
-
 		pwt.setSequenceCount((int)frameSeqCount); // at present use the frame count as sequence count.
 
         processPacket(pwt);
