@@ -67,9 +67,22 @@ Below is a set of diagrams outlining both how Yamcs in its current state works, 
 
 ## Install Project Dependencies
 
+```bash
+$ git clone https://github.com/yamcs/yamcs.git
+$ cd yamcs
+
+
+$ cd yamcs-web/src/main/webapp
+$ npm install
+$ npm run build
+$ cd -
+
+$ mvn clean install -DskipTests
+```
+
 Install the required project dependencies from the official maven repos and start yamcs in debug mode.
 
-  `$` `mvn clean yamcs:debug`
+  `$` `mvn clean yamcs:debug -o`
 
 
 
@@ -98,31 +111,6 @@ How to:
 
 ***
 
-
-# Installation and setup for USLP-tc fix
-
-
-
-## Install the YAMCS hotfix-uslp-sdls-uplink branch:
-
-The main yamcs repository currently has a bug with the SDLS header location. This branch of a fork by one of the YAMCS developers contains the fix.
-
-```bash
-$ git clone -b hotfix-uslp-sdls-uplink https://github.com/thezeroalpha/yamcs/
-$ cd yamcs
-
-
-$ cd yamcs-web/src/main/webapp
-$ npm install
-$ npm run build
-$ cd -
-
-$ mvn clean install
-```
-
-## Install and run the uniclogs implementation of YAMCS with using locally installed uslp-tc YAMCS.
-
-`$` `mvn clean yamcs:debug -o`
 
 
 ## Appendix and Resources
