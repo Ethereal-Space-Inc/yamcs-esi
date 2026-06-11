@@ -20,42 +20,19 @@ public final class CfdpVc1FrameCodec {
 
     private CfdpVc1FrameCodec() {}
 
-    public static byte[] wrap(byte[] pdu, byte[] hmacKey) {
-        byte[] mac = hmac(hmacKey, pdu);
-        byte[] out = new byte[pdu.length + HMAC_LEN];
+    public static byte[] wrap(byte[] pdu) {
+        byte[] out = new byte[pdu.length];
         System.arraycopy(pdu, 0, out, 0, pdu.length);
-        System.arraycopy(mac, 0, out, pdu.length, HMAC_LEN);
         return out;
     }
 
-    public static byte[] unwrap(byte[] tfdz, byte[] hmacKey, boolean verify) {
-        if (tfdz.length < HMAC_LEN) {
-            throw new IllegalArgumentException("TFDZ shorter than HMAC: " + tfdz.length);
-        }
-        int pduLen = tfdz.length - HMAC_LEN;
+    public static byte[] unwrap(byte[] tfdz, boolean verify) {
+        int pduLen = tfdz.length;
         byte[] pdu = new byte[pduLen];
         System.arraycopy(tfdz, 0, pdu, 0, pduLen);
-        if (verify) {
-            byte[] received = new byte[HMAC_LEN];
-            System.arraycopy(tfdz, pduLen, received, 0, HMAC_LEN);
-            byte[] expected = hmac(hmacKey, pdu);
-            if (!constantTimeEquals(received, expected)) {
-                throw new SecurityException("HMAC mismatch");
-            }
-        }
         return pdu;
     }
-
-    public static byte[] hmac(byte[] key, byte[] msg) {
-        try {
-            Mac mac = Mac.getInstance(MAC_ALG);
-            mac.init(new SecretKeySpec(key, MAC_ALG));
-            return mac.doFinal(msg);
-        } catch (GeneralSecurityException e) {
-            throw new IllegalStateException(MAC_ALG + " unavailable", e);
-        }
-    }
-
+    
     /**
      * Pack a full USLP VC=1 TC frame: primary header + insert-zone seq-num + TFDF header +
      * pdu + HMAC-SHA3-256 + CRC16 FECF. Matches oresat_c3/protocols/edl_packet.py format.

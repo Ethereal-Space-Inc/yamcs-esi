@@ -42,8 +42,6 @@ public class CfdpVc1DownlinkHandler extends AbstractLink implements VcDownlinkHa
         YConfiguration args = config.containsKey("vcaHandlerArgs")
                 ? config.getConfig("vcaHandlerArgs")
                 : config;
-        this.hmacKey = StringConverter.hexStringToArray(args.getString("hmacKeyHex"));
-        this.verifyHmac = args.getBoolean("verifyHmac", false);
         this.stripFecf = args.getBoolean("stripFecf", true);
         this.streamName = args.getString("cfdpStream", "cfdp_in");
     }
@@ -68,10 +66,7 @@ public class CfdpVc1DownlinkHandler extends AbstractLink implements VcDownlinkHa
         int tfdzStart = frame.getDataStart() + 1;
         int tfdzEnd = frame.getDataEnd() - (stripFecf ? CfdpVc1FrameCodec.FECF_LEN : 0);
         int tfdzLen = tfdzEnd - tfdzStart;
-        if (tfdzLen < CfdpVc1FrameCodec.HMAC_LEN) {
-            log.warn("VC1 TFDZ too short ({}), dropping", tfdzLen);
-            return;
-        }
+
         byte[] tfdz = new byte[tfdzLen];
         System.arraycopy(frame.getData(), tfdzStart, tfdz, 0, tfdzLen);
 
