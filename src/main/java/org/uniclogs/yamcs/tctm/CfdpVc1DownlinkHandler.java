@@ -15,16 +15,13 @@ import org.yamcs.yarch.YarchDatabase;
 import org.yamcs.yarch.YarchDatabaseInstance;
 
 /**
- * VCA handler for USLP VC=1 TM: strips HMAC-SHA3-256 off of the TFDZ and emits
+ * VCA handler for USLP VC=1 TM: Emits
  * the raw CFDP PDU as a tuple (gentime, entityId, seqNum, pdu) on the cfdp_in
  * stream, matching the input required for CfdpService.inStream.
  */
 public class CfdpVc1DownlinkHandler extends AbstractLink implements VcDownlinkHandler {
     private static final Log log = new Log(CfdpVc1DownlinkHandler.class);
 
-    private byte[] hmacKey;
-    private boolean verifyHmac;
-    private boolean stripFecf;
     private String streamName;
     private Stream cfdpInStream;
 
@@ -42,7 +39,6 @@ public class CfdpVc1DownlinkHandler extends AbstractLink implements VcDownlinkHa
         YConfiguration args = config.containsKey("vcaHandlerArgs")
                 ? config.getConfig("vcaHandlerArgs")
                 : config;
-        this.stripFecf = args.getBoolean("stripFecf", true);
         this.streamName = args.getString("cfdpStream", "cfdp_in");
     }
 
@@ -64,20 +60,15 @@ public class CfdpVc1DownlinkHandler extends AbstractLink implements VcDownlinkHa
         }
         // Skip 1-byte TFDF header (VpNoSegmentation construction rules byte).
         int tfdzStart = frame.getDataStart() + 1;
-        int tfdzEnd = frame.getDataEnd() - (stripFecf ? CfdpVc1FrameCodec.FECF_LEN : 0);
+        int tfdzEnd = frame.getDataEnd();
         int tfdzLen = tfdzEnd - tfdzStart;
 
         byte[] tfdz = new byte[tfdzLen];
         System.arraycopy(frame.getData(), tfdzStart, tfdz, 0, tfdzLen);
 
         byte[] pdu;
-        try {
-            pdu = CfdpVc1FrameCodec.unwrap(tfdz, hmacKey, verifyHmac);
-        } catch (SecurityException e) {
-            log.warn("VC1 HMAC verify failed, dropping PDU: {}", e.getMessage());
-            return;
-        }
-        log.debug("VC1 PDU in ({} bytes): {}",
+        pdu = CfdpVc1FrameCodec.unwrap(tfdz);
+        log.warn("VC1 PDU in ({} bytes): {}",
                 pdu.length, StringConverter.arrayToHexString(pdu, true));
 
         Stream s = stream();
