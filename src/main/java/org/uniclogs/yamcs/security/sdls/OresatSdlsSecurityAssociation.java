@@ -27,7 +27,17 @@ import org.yamcs.security.sdls.SdlsSecurityAssociation;
 
 
 
-
+/**
+ * Implementation of how oresat handles SDLS.
+ * 
+ * Fun issue with the current implementation:
+ * Yamcs expects each vcid to have its own sequence number.
+ * Oresat expects each vcid to share the same global sequence number.
+ * 
+ * I've currently fixed this by just readig and writing the sequence number before and after each use.
+ * A better implementation should be created later, potentially removing the sequence number entirely
+ * and just using properties, if that is a thing in java.
+ */
 public class OresatSdlsSecurityAssociation implements SdlsSecurityAssociation {
     private static final String MAC_ALG = "HmacSHA3-256";
     private static final int MAC_LEN_BITS = 256;
@@ -44,7 +54,7 @@ public class OresatSdlsSecurityAssociation implements SdlsSecurityAssociation {
 	private final String instanceName;
     private final String linkName;
     private static final Logger log = LoggerFactory.getLogger(OresatSdlsSecurityAssociation.class);
-	
+
     /**
      * @param key                the 256-bit key used for encryption/decryption
      * @param spi                the security parameter index, shared between sender and receiver.
@@ -62,11 +72,13 @@ public class OresatSdlsSecurityAssociation implements SdlsSecurityAssociation {
         this.secretKey = new SecretKeySpec(key, MAC_ALG);
 
         // If we have information to retrieve a persisted sequence number, do so
-        if (instanceName != null && linkName != null) {
+        if (instanceName != null) { // oresat doesn't use a seperate sequence number per VCID, so we ignore link name.
             this.seqNum = loadSeqNum();
+            log.warn("Trying to load sequence number for instance name {}, got {}.", instanceName, this.seqNum);
         }
         // if we did not find a sequence number used the initial one if set
         if (this.seqNum == null) {
+            log.warn("could not find seqnum: instance name {}.", instanceName);
             if (initialSeqNumBytes != null) {
                 this.seqNum = IvSeqNum.fromBytes(initialSeqNumBytes, SEQ_NUM_LEN_BYTES);
             } else {// if not set, just start from 0 but on the downlink do not verify the first frame
@@ -142,7 +154,6 @@ public class OresatSdlsSecurityAssociation implements SdlsSecurityAssociation {
         return seqNum.toBytes(SEQ_NUM_LEN_BYTES);
     }
 
-
 	// TODO: make sure these work out well.
     /**
      * Load a persisted sequence number, defaulting to zero.
@@ -151,8 +162,8 @@ public class OresatSdlsSecurityAssociation implements SdlsSecurityAssociation {
      */
     IvSeqNum loadSeqNum() {
         MementoDb mementoDb = MementoDb.getInstance(instanceName);
-        return mementoDb.getObject(SdlsMemento.MEMENTO_KEY, SdlsMemento.class)
-                .map(memento -> memento.getSeqNum(linkName, spi)).orElse(null);
+        return mementoDb.getObject(SdlsMemento.MEMENTO_KEY, SdlsMemento.class) // due to how oresat handles things, I'm changing linkname to instanceName.
+                .map(memento -> memento.getSeqNum(instanceName, spi)).orElse(null); // eventually, OresatMemento should be created to clean this.
     }
 
     /**
@@ -162,8 +173,8 @@ public class OresatSdlsSecurityAssociation implements SdlsSecurityAssociation {
         MementoDb mementoDb = MementoDb.getInstance(instanceName);
         SdlsMemento memento = mementoDb.getObject(SdlsMemento.MEMENTO_KEY, SdlsMemento.class)
                 .orElse(new SdlsMemento());
-        memento.saveSeqNum(linkName, spi, seqNum);
-        mementoDb.putObject(SdlsMemento.MEMENTO_KEY, memento);
+        memento.saveSeqNum(instanceName, spi, seqNum); // due to how oresat handles things, I'm changing linkname to instanceName.
+        mementoDb.putObject(SdlsMemento.MEMENTO_KEY, memento); // eventually, OresatMemento should be created to clean this.
     }
 
     /**
@@ -184,6 +195,9 @@ public class OresatSdlsSecurityAssociation implements SdlsSecurityAssociation {
     @Override
     public void applySecurity(byte[] buffer, int frameStart, int secHeaderStart, int secTrailerEnd,
                               byte[] authMask) throws GeneralSecurityException {
+        if (instanceName != null) {
+            loadSeqNum();
+        }
         byte[] seqNumBytes = getSeqNumBytes();
 		
 		// Fill security header
@@ -193,6 +207,9 @@ public class OresatSdlsSecurityAssociation implements SdlsSecurityAssociation {
         System.arraycopy(seqNumBytes, 0, buffer, secHeaderStart + 2, seqNumBytes.length);
         // and increment the sequence number
         seqNum.increment();
+        if (instanceName != null) {
+            persistSeqNum();
+        }
 
         byte[] ad = computeAD(buffer, frameStart, secTrailerEnd - 32, authMask);
 		byte[] hmac = genHmac(ad);
@@ -250,6 +267,9 @@ public class OresatSdlsSecurityAssociation implements SdlsSecurityAssociation {
 		
         IvSeqNum receivedSeqNum = IvSeqNum.fromBytes(receivedSeqNumBytes, SEQ_NUM_LEN_BYTES);
 
+        if (instanceName != null) {
+            loadSeqNum();
+        }
         if (skipVerifyingNextSeqNum) {
             skipVerifyingNextSeqNum = false;
         } else if (verifySeqNum && !seqNum.verifyInWindow(receivedSeqNum, seqNumWindow)) {
@@ -257,7 +277,7 @@ public class OresatSdlsSecurityAssociation implements SdlsSecurityAssociation {
         }
         seqNum = receivedSeqNum;
         // Save the last received seq num
-        if (instanceName != null && linkName != null) {
+        if (instanceName != null) {
             persistSeqNum();
         }
 
